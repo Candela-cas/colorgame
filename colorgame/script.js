@@ -6,92 +6,93 @@ const colorPalettes = [
   ["rgb(26,188,156)","rgb(46,204,113)","rgb(52,152,219)","rgb(155,89,182)","rgb(241,196,15)","rgb(231,76,60)"]
 ];
 
-let numSquares = 6;
-let colors = [];
-let pickedColor;
-
 const squares = document.querySelectorAll(".square");
 const colorDisplay = document.getElementById("colorDisplay");
 const messageDisplay = document.getElementById("message");
 const h1 = document.querySelector("h1");
 const resetButton = document.getElementById("reset");
-const easyBtn = document.getElementById("easy");
-const hardBtn = document.getElementById("hard");
+const modeButtons = document.querySelectorAll(".mode");
+
+let numSquares = 6;
+let colors = [];
+let pickedColor;
 
 init();
 
 function init() {
+  setupModeButtons();
   setupSquares();
-  setupButtons();
-  resetGame();
+  reset();
+}
+
+function setupModeButtons() {
+  for (let i = 0; i < modeButtons.length; i++) {
+    modeButtons[i].addEventListener("click", function() {
+      modeButtons[0].classList.remove("selected");
+      modeButtons[1].classList.remove("selected");
+      this.classList.add("selected");
+      numSquares = this.textContent === "EASY" ? 3 : 6;
+      reset();
+    });
+  }
 }
 
 function setupSquares() {
-  squares.forEach((square) => {
-    square.addEventListener("click", function() {
+  for (let i = 0; i < squares.length; i++) {
+    squares[i].addEventListener("click", function() {
       const clickedColor = this.style.backgroundColor;
-      if (colorsMatch(clickedColor, pickedColor)) {
+      if (clickedColor === pickedColor) {
         messageDisplay.textContent = "¡Correcto!";
         changeColors(pickedColor);
         h1.style.backgroundColor = pickedColor;
-        resetButton.textContent = "¿Jugar de nuevo?";
       } else {
         this.style.backgroundColor = "#232323";
-        messageDisplay.textContent = "Inténtalo nuevamente";
+        messageDisplay.textContent = "Intentalo nuevamente";
       }
     });
-  });
+  }
 }
 
-function setupButtons() {
-  resetButton.addEventListener("click", resetGame);
-
-  easyBtn.addEventListener("click", function() {
-    numSquares = 3;
-    easyBtn.classList.add("selected");
-    hardBtn.classList.remove("selected");
-    resetGame();
-  });
-
-  hardBtn.addEventListener("click", function() {
-    numSquares = 6;
-    hardBtn.classList.add("selected");
-    easyBtn.classList.remove("selected");
-    resetGame();
-  });
-}
-
-function resetGame() {
-  colors = getRandomPalette();
-  squares.forEach((square, i) => {
-    if (i < numSquares) {
-      square.style.display = "block";
-      square.style.backgroundColor = colors[i];
-    } else {
-      square.style.display = "none";
-    }
-  });
-
-  pickedColor = colors[Math.floor(Math.random() * numSquares)];
+function reset() {
+  colors = generateRandomColors(numSquares);
+  pickedColor = pickColor();
   colorDisplay.textContent = pickedColor;
-
   messageDisplay.textContent = "";
   h1.style.backgroundColor = "steelblue";
-  resetButton.textContent = "Nuevos Colores";
+  for (let i = 0; i < squares.length; i++) {
+    if (colors[i]) {
+      squares[i].style.display = "block";
+      squares[i].style.backgroundColor = colors[i];
+    } else {
+      squares[i].style.display = "none";
+    }
+  }
 }
+
+resetButton.addEventListener("click", reset);
 
 function changeColors(color) {
-  squares.forEach(square => {
-    if (square.style.display !== "none") {
-      square.style.backgroundColor = color;
-    }
-  });
+  for (let i = 0; i < squares.length; i++) {
+    squares[i].style.backgroundColor = color;
+  }
 }
 
-function colorsMatch(c1, c2) {
-  return c1.replace(/\s+/g,'') === c2.replace(/\s+/g,'');
+function pickColor() {
+  const randomIndex = Math.floor(Math.random() * colors.length);
+  return colors[randomIndex];
 }
 
-function getRandomPalette() {
-  return colorPalettes[Math.floor(Math.random() * colorPalettes.length)];
+function generateRandomColors(num) {
+  const arr = [];
+  for (let i = 0; i < num; i++) {
+    arr.push(randomColor());
+  }
+  return arr;
+}
+
+function randomColor() {
+  const r = Math.floor(Math.random() * 256);
+  const g = Math.floor(Math.random() * 256);
+  const b = Math.floor(Math.random() * 256);
+  return `rgb(${r}, ${g}, ${b})`;
 }
